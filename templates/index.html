@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Pages Site</title>
+    <title>{{.Title}}</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <h1>My GitHub Pages Site</h1>
+        <h1>{{.Title}}</h1>
     </header>
     <main>
-        <p>Welcome to my static website generated with Go!</p>
+        <p>{{.Content}}</p>
     </main>
 </body>
 </html>

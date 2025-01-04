@@ -18,48 +18,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = copyDir("static", "docs")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	page := Page{
 		Title:   "My GitHub Pages Site",
 		Content: "Welcome to my static website generated with Go!",
 	}
 
-	tmpl := `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        header {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #eee;
-        }
-        main {
-            padding: 20px 0;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>{{.Title}}</h1>
-    </header>
-    <main>
-        <p>{{.Content}}</p>
-    </main>
-</body>
-</html>
-`
-
-	t, err := template.New("webpage").Parse(tmpl)
+	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,10 +40,47 @@ func main() {
 	}
 	defer f.Close()
 
-	err = t.Execute(f, page)
+	err = tmpl.Execute(f, page)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("Static site generated successfully in the 'docs' directory")
+}
+
+func copyDir(src string, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+
+		return copyFile(path, dstPath)
+	})
+}
+
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = in.WriteTo(out)
+	return err
 }
